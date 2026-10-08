@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFEFF4">
+<title>주이 사랑 돌림판</title>
+<style>
+  html { color-scheme: light; }
+  :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  body { margin: 0; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap">
+<style>
+  /* Layout: one centered column on a strawberry-milk ground. A chunky wheel sits in the middle,
+     the result card and the "미안함 게이지" follow below it. */
+  :root {
+    --bg: #FFEFF4;
+    --surface: #FFFFFF;
+    --ink: #4A1930;
+    --ink-soft: #85506B;
+    --berry: #D63060;
+    --berry-deep: #A81F48;
+    --berry-ink: #FFFFFF;
+    --line: #F3C4D4;
+    --track: #F9D6E2;
+    --font-display: "Jua", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    --font-body: "Gowun Dodum", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #2B1020;
+      --surface: #3C1A2E;
+      --ink: #FFE6EE;
+      --ink-soft: #DDAAC0;
+      --berry: #FF7399;
+      --berry-deep: #D94B76;
+      --berry-ink: #2B1020;
+      --line: #5E2D48;
+      --track: #52263C;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #2B1020;
+    --surface: #3C1A2E;
+    --ink: #FFE6EE;
+    --ink-soft: #DDAAC0;
+    --berry: #FF7399;
+    --berry-deep: #D94B76;
+    --berry-ink: #2B1020;
+    --line: #5E2D48;
+    --track: #52263C;
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    padding-inline: 16px;
+    padding-block: 28px 40px;
+  }
+  .page {
+    max-width: 440px;
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  header { text-align: center; display: flex; flex-direction: column; gap: 6px; }
+  .eyebrow {
+    font-family: var(--font-display);
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    color: var(--berry);
+  }
+  h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(30px, 9vw, 40px);
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+  .sub { margin: 0; color: var(--ink-soft); text-wrap: balance; }
+
+  /* wheel */
+  .stage { position: relative; padding-top: 18px; }
+  .wheel {
+    position: relative;
+    width: min(100%, 400px);
+    aspect-ratio: 1;
+    margin-inline: auto;
+    border-radius: 50%;
+    border: 9px solid var(--berry);
+    background: var(--surface);
+    box-sizing: border-box;
+    box-shadow: 0 8px 0 var(--berry-deep), 0 18px 28px rgba(120, 20, 60, 0.18);
+  }
+  .wheel canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    will-change: transform;
+  }
+  .pointer {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 0;
+    height: 0;
+    transform: translateX(-50%);
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 30px solid var(--ink);
+    filter: drop-shadow(0 3px 0 var(--surface));
+    z-index: 3;
+  }
+  .pointer.wiggle { animation: wiggle 0.5s ease-out; transform-origin: 50% 0; }
+  @keyframes wiggle {
+    0% { transform: translateX(-50%) rotate(0); }
+    30% { transform: translateX(-50%) rotate(-14deg); }
+    60% { transform: translateX(-50%) rotate(8deg); }
+    100% { transform: translateX(-50%) rotate(0); }
+  }
+  .hub {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 27%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 6px solid var(--berry);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: clamp(20px, 6.4vw, 30px);
+    line-height: 1;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    box-shadow: 0 4px 0 var(--berry-deep);
+    z-index: 2;
+  }
+  .hub:active { transform: translate(-50%, calc(-50% + 3px)); box-shadow: 0 1px 0 var(--berry-deep); }
+  .hub:disabled { cursor: default; }
+  .hub span { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .hub small { font-size: 0.5em; color: var(--berry); }
+
+  /* spin button */
+  .cta {
+    align-self: center;
+    font-family: var(--font-display);
+    font-size: 22px;
+    background: var(--berry);
+    color: var(--berry-ink);
+    border: 0;
+    border-radius: 999px;
+    padding: 13px 40px;
+    cursor: pointer;
+    box-shadow: 0 6px 0 var(--berry-deep);
+    transition: transform 0.08s, box-shadow 0.08s;
+  }
+  .cta:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 2px 0 var(--berry-deep); }
+  .cta:disabled { opacity: 0.75; cursor: default; }
+  button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+  /* result */
+  .result {
+    background: var(--surface);
+    border: 2px dashed var(--line);
+    border-radius: 22px;
+    padding: 18px 20px 20px;
+    min-height: 168px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: center;
+    justify-content: center;
+  }
+  .result .kicker { font-size: 13px; letter-spacing: 0.08em; color: var(--ink-soft); }
+  .result .big {
+    font-family: var(--font-display);
+    font-size: clamp(30px, 9vw, 38px);
+    line-height: 1.2;
+    color: var(--berry);
+    text-wrap: balance;
+  }
+  .result .msg { margin: 0; text-wrap: balance; }
+  .result .finale {
+    margin: 6px 0 0;
+    padding-top: 10px;
+    border-top: 2px dotted var(--line);
+    font-family: var(--font-display);
+    font-size: 18px;
+    color: var(--berry);
+  }
+  .result.pop { animation: pop 0.45s cubic-bezier(.2, 1.4, .4, 1); }
+  @keyframes pop { from { transform: scale(0.94); } to { transform: scale(1); } }
+
+  /* gauge */
+  .gauge { display: flex; flex-direction: column; gap: 8px; }
+  .gauge-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--font-display);
+    font-size: 17px;
+  }
+  .gauge-head .pct { color: var(--berry); font-variant-numeric: tabular-nums; }
+  .track { height: 16px; background: var(--track); border-radius: 999px; overflow: hidden; }
+  .fill {
+    height: 100%;
+    width: 50%;
+    background: var(--berry);
+    border-radius: 999px;
+    transition: width 0.7s cubic-bezier(.3, 1.2, .4, 1);
+  }
+  .gauge-note { margin: 0; font-size: 13px; color: var(--ink-soft); }
+
+  .foot { margin: 0; text-align: center; font-size: 13px; color: var(--ink-soft); text-wrap: balance; }
+
+  /* floating hearts */
+  .hearts { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 10; }
+  .hearts i {
+    position: absolute;
+    bottom: -40px;
+    font-style: normal;
+    animation: floatUp linear forwards;
+  }
+  @keyframes floatUp {
+    0% { transform: translate(0, 0) scale(0.7); opacity: 0; }
+    12% { opacity: 1; }
+    100% { transform: translate(var(--sway, 20px), -115vh) scale(1.1); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pointer.wiggle, .result.pop { animation: none; }
+    .fill { transition: none; }
+  }
+</style>
+
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="eyebrow">FOR 주이</div>
+    <h1>주이 사랑 돌림판</h1>
+    <p class="sub">어디에 걸려도 꽝은 없어. 전부 당첨이야.</p>
+  </header>
+
+  <div class="stage">
+    <div class="pointer" id="pointer" aria-hidden="true"></div>
+    <div class="wheel" id="wheel">
+      <canvas id="canvas" aria-hidden="true"></canvas>
+      <button class="hub" id="hub" type="button" aria-label="돌림판 돌리기"><span>주이<small>♥</small></span></button>
+    </div>
+  </div>
+
+  <button class="cta" id="spin" type="button">돌려봐 ♥</button>
+
+  <section class="result" id="result" aria-live="polite">
+    <div class="kicker" id="kicker">뭐가 나올까?</div>
+    <div class="big" id="big">두근두근</div>
+    <p class="msg" id="msg">가운데 주이를 눌러도 되고, 아래 버튼을 눌러도 돼.</p>
+  </section>
+
+  <section class="gauge" aria-label="미안함 게이지">
+    <div class="gauge-head"><span>내 미안함 게이지</span><span class="pct" id="pct">50%</span></div>
+    <div class="track"><div class="fill" id="fill"></div></div>
+    <p class="gauge-note" id="gnote">돌릴 때마다 10%씩 올라가.</p>
+  </section>
+
+  <p class="foot">이 돌림판은 주이만 돌릴 수 있습니다. 유효기간 없음, 환불 불가.</p>
+</div>
+<div class="hearts" id="hearts" aria-hidden="true"></div>
+
+<script>
+(function () {
+  var items = [
+    { label: "사랑한다", msg: "사랑한다, 주이야. 몇 번을 돌려도 이 말은 똑같이 나와." },
+    { label: "러브 한다", msg: "러브 한다. 영어로 해도 한국어로 해도 결론은 같아." },
+    { label: "I ♥ U", msg: "I ♥ U. 이건 번역할 필요도 없지?" },
+    { label: "미안해", msg: "약속 취소해서 미안해. 서운했을 텐데 변명하지 않고 사과할게." },
+    { label: "맛집 쏜다", msg: "주이가 고른 곳에서 먹자. 메뉴도 주이가 정하고 계산은 내가 할게." },
+    { label: "꽉 안기", msg: "만나자마자 10초 동안 꽉 안아줄게. 도망가기 없기." },
+    { label: "약속 사수", msg: "다음 약속은 내가 먼저 잡고 끝까지 지킬게." },
+    { label: "소원권", msg: "소원 하나 들어줄게. 내용은 주이 마음대로, 유효기간은 없어." },
+    { label: "보고싶다", msg: "보고싶다. 얼굴 보고 제대로 사과하고 싶어." },
+    { label: "많이 사랑", msg: "많이 많이 사랑해. 마음이 풀릴 때까지 옆에서 기다릴게." }
+  ];
+  var colors = ["#FF9DB8", "#FFC09F", "#FFE58F", "#A8E6CF", "#CDB8F5"];
+  var N = items.length, STEP = 360 / N;
+
+  var wheel = document.getElementById("wheel");
+  var canvas = document.getElementById("canvas");
+  var hub = document.getElementById("hub");
+  var spinBtn = document.getElementById("spin");
+  var pointer = document.getElementById("pointer");
+  var result = document.getElementById("result");
+  var kicker = document.getElementById("kicker");
+  var big = document.getElementById("big");
+  var msg = document.getElementById("msg");
+  var pctEl = document.getElementById("pct");
+  var fill = document.getElementById("fill");
+  var gnote = document.getElementById("gnote");
+  var hearts = document.getElementById("hearts");
+
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var rotation = 0, spinning = false, lastIdx = -1, gauge = 50, finale = null;
+
+  function draw() {
+    var size = wheel.clientWidth;
+    if (!size) return;
+    var dpr = Math.min(window.devicePixelRatio || 1, 3);
+    canvas.width = canvas.height = Math.round(size * dpr);
+    var ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var c = size / 2, R = c;
+    ctx.clearRect(0, 0, size, size);
+    var fontStack = '"Jua","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+    for (var i = 0; i < N; i++) {
+      var a0 = (-90 + i * STEP) * Math.PI / 180;
+      var a1 = (-90 + (i + 1) * STEP) * Math.PI / 180;
+      ctx.beginPath();
+      ctx.moveTo(c, c);
+      ctx.arc(c, c, R, a0, a1);
+      ctx.closePath();
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.fill();
+      ctx.lineWidth = Math.max(2, size * 0.008);
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.stroke();
+    }
+    for (var j = 0; j < N; j++) {
+      var am = (-90 + j * STEP + STEP / 2) * Math.PI / 180;
+      ctx.save();
+      ctx.translate(c, c);
+      ctx.rotate(am);
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#4A1930";
+      var fs = size * 0.062;
+      var maxW = R * 0.9 - R * 0.34;
+      ctx.font = fs + "px " + fontStack;
+      while (ctx.measureText(items[j].label).width > maxW && fs > 9) {
+        fs -= 1;
+        ctx.font = fs + "px " + fontStack;
+      }
+      ctx.fillText(items[j].label, R * 0.9, 0);
+      ctx.restore();
+    }
+    for (var k = 0; k < N; k++) {
+      var ab = (-90 + k * STEP) * Math.PI / 180;
+      ctx.beginPath();
+      ctx.arc(c + Math.cos(ab) * R * 0.955, c + Math.sin(ab) * R * 0.955, size * 0.009, 0, Math.PI * 2);
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fill();
+    }
+  }
+
+  function pickIndex() {
+    var idx;
+    do { idx = Math.floor(Math.random() * N); } while (idx === lastIdx && N > 1);
+    return idx;
+  }
+
+  // Angle (clockwise, from the top) the wheel must end at so slice idx sits under the pointer.
+  function targetRotation(idx, jitterUnit) {
+    var inSlice = (idx + 0.5) * STEP + jitterUnit * STEP * 0.6;
+    var needed = ((360 - inSlice) % 360 + 360) % 360;
+    var base = Math.ceil(rotation / 360) * 360;
+    return base + 360 * (5 + Math.floor(Math.random() * 3)) + needed;
+  }
+
+  function spin() {
+    if (spinning) return;
+    spinning = true;
+    spinBtn.disabled = true;
+    hub.disabled = true;
+    spinBtn.textContent = "두근두근…";
+    var idx = pickIndex();
+    lastIdx = idx;
+    rotation = targetRotation(idx, Math.random() - 0.5);
+    var dur = reduce ? 700 : 5000;
+    canvas.style.transition = "transform " + dur + "ms cubic-bezier(.12,.62,.1,1)";
+    canvas.style.transform = "rotate(" + rotation + "deg)";
+    var done = false;
+    function finish() {
+      if (done) return;
+      done = true;
+      canvas.removeEventListener("transitionend", finish);
+      show(idx);
+    }
+    canvas.addEventListener("transitionend", finish);
+    setTimeout(finish, dur + 300);
+  }
+
+  function show(idx) {
+    gauge = Math.min(100, gauge + 10);
+    kicker.textContent = "이번에 나온 건";
+    big.textContent = items[idx].label;
+    msg.textContent = items[idx].msg;
+    if (gauge >= 100) {
+      if (!finale) {
+        finale = document.createElement("p");
+        finale.className = "finale";
+        finale.textContent = "미안함 100% 충전 완료.";
+        result.appendChild(finale);
+      }
+      pctEl.textContent = "MAX";
+      gnote.textContent = "가득 찼어. 더 돌려도 사랑은 계속 나와.";
+    } else {
+      pctEl.textContent = gauge + "%";
+      gnote.textContent = "돌릴 때마다 10%씩 올라가. 가득 차면 뭔가 생겨.";
+    }
+    fill.style.width = gauge + "%";
+    result.classList.remove("pop");
+    void result.offsetWidth;
+    result.classList.add("pop");
+    pointer.classList.remove("wiggle");
+    void pointer.offsetWidth;
+    pointer.classList.add("wiggle");
+    burst();
+    spinBtn.disabled = false;
+    hub.disabled = false;
+    spinBtn.textContent = "한 번 더 ♥";
+    spinning = false;
+  }
+
+  function burst() {
+    if (reduce) return;
+    var palette = ["#FF6B94", "#FFB199", "#FFE08A", "#C9B6F2", "#A8E6CF"];
+    for (var i = 0; i < 18; i++) {
+      var h = document.createElement("i");
+      h.textContent = "♥";
+      h.style.left = (6 + Math.random() * 88) + "%";
+      h.style.fontSize = (14 + Math.random() * 22) + "px";
+      h.style.color = palette[Math.floor(Math.random() * palette.length)];
+      h.style.setProperty("--sway", ((Math.random() - 0.5) * 80) + "px");
+      h.style.animationDuration = (2 + Math.random() * 1.6) + "s";
+      h.style.animationDelay = (Math.random() * 0.5) + "s";
+      hearts.appendChild(h);
+      (function (el) { setTimeout(function () { el.remove(); }, 4400); })(h);
+    }
+  }
+
+  spinBtn.addEventListener("click", spin);
+  hub.addEventListener("click", spin);
+  window.addEventListener("resize", draw);
+  draw();
+  if (document.fonts && document.fonts.load) {
+    document.fonts.load('22px "Jua"', "사랑한다 러브 미안해 ♥").then(draw).catch(function () {});
+    if (document.fonts.ready) document.fonts.ready.then(draw);
+  }
+})();
+</script>
+</body>
+</html>
